@@ -33,7 +33,7 @@ function addLineTests()
 	}
 	TestingManager.addTest("TestLine_IsEqualWhenIsMultiple",TestLine_IsEqualWhenIsMultiple, true, "assertEquals");
 	
-	function TestLine_IsEqualFloatingPoint()
+	function TestLine_IsEqualWhenFloatingPoint()
 	{
 		var firstLine = new Line(5, 6, 7);
 		// to simulate floating point error from a reproduced bug
@@ -42,7 +42,53 @@ function addLineTests()
 		var secondLine = new Line(-m, 1, -b);
 		return firstLine.equals(secondLine);
 	}
-	TestingManager.addTest("TestLine_IsEqualFloatingPoint",TestLine_IsEqualFloatingPoint, true, "assertEquals");
+	TestingManager.addTest("TestLine_IsEqualWhenFloatingPoint",TestLine_IsEqualWhenFloatingPoint, true, "assertEquals");
+	
+	// it should not crash, at the very least
+	function TestLine_IsEqualWhenNull()
+	{
+		var firstLine = new Line(5, 6, 7);
+		var secondLine = null;
+		
+		return firstLine.equals(secondLine);
+	}
+	TestingManager.addTest("TestLine_IsEqualWhenNull",TestLine_IsEqualWhenNull, false, "assertEquals");
+	
+	function TestLine_IsEqualWhenZeroA()
+	{
+		var firstLine = new Line(0, 6, 7);
+		var secondLine = new Line(0, 6, 7);
+
+		return firstLine.equals(secondLine);
+	}
+	TestingManager.addTest("TestLine_IsEqualWhenZeroA",TestLine_IsEqualWhenZeroA, true, "assertEquals");
+	
+	function TestLine_IsNotEqualWhenZeroA()
+	{
+		var firstLine = new Line(0, 6, 7);
+		var secondLine = new Line(5, 6, 7);
+
+		return firstLine.equals(secondLine);
+	}
+	TestingManager.addTest("TestLine_IsNotEqualWhenZeroA",TestLine_IsNotEqualWhenZeroA, false, "assertEquals");
+	
+	function TestLine_IsEqualWhenZeroB()
+	{
+		var firstLine = new Line(5, 0, 7);
+		var secondLine = new Line(5, 0, 7);
+
+		return firstLine.equals(secondLine);
+	}
+	TestingManager.addTest("TestLine_IsEqualWhenZeroB",TestLine_IsEqualWhenZeroB, true, "assertEquals");
+	
+	function TestLine_IsEqualWhenZeroAll()
+	{
+		var firstLine = new Line(0, 0, 0);
+		var secondLine = new Line(0, 0, 0);
+
+		return firstLine.equals(secondLine);
+	}
+	TestingManager.addTest("TestLine_IsEqualWhenZeroAll",TestLine_IsEqualWhenZeroAll, true, "assertEquals");
 	
 	/* Test the function Line.isParallel(line) */
 	
@@ -154,6 +200,28 @@ function addLineTests()
 	}
 	TestingManager.addTest("TestLine_SetByTwoPoints",TestLine_SetByTwoPoints, new Line(5, 6, 7), "assertObjectEquals");
 	
+	// special case where the line is vertical. 
+	// any infinities are NOT a valid solution, we take only x=7 as a solution (that means b = 0)
+	function TestLine_SetByTwoPointsVertical()
+	{
+		var firstLine = new Line();
+		
+		firstLine.setByTwoPoints(7, 7, 7, -5);
+		
+		return firstLine;
+	}
+	TestingManager.addTest("TestLine_SetByTwoPointsVertical",TestLine_SetByTwoPointsVertical, new Line(1, 0, -7), "assertObjectEquals");
+	
+	// ditto for horizontal, y=-5
+	function TestLine_SetByTwoPointsHorizontal()
+	{
+		var firstLine = new Line();
+		
+		firstLine.setByTwoPoints(1, -5, 7, -5);
+		return firstLine;
+	}
+	TestingManager.addTest("TestLine_SetByTwoPointsHorizontal",TestLine_SetByTwoPointsHorizontal, new Line(0, 1, 5), "assertObjectEquals");
+	
 	/* Test the function Line.setByPointAndAngle(x1, y1, theta) */
 	function TestLine_SetByPointAndAngle()
 	{
@@ -164,6 +232,16 @@ function addLineTests()
 	}
 	TestingManager.addTest("TestLine_SetByPointAndAngle",TestLine_SetByPointAndAngle, new Line(1/Math.sqrt(3),1,-(4+1/(Math.sqrt(3)))), "assertObjectEquals");
 	
+	// Add 180deg should still produce the same line.
+	function TestLine_SetByPointAndAnglePlusPi()
+	{
+		var firstLine = new Line();
+		firstLine.setByPointAndAngle(1, 4, Math.PI/6 + Math.PI);
+		
+		return firstLine;
+	}
+	TestingManager.addTest("TestLine_SetByPointAndAnglePlusPi",TestLine_SetByPointAndAnglePlusPi, new Line(1/Math.sqrt(3),1,-(4+1/(Math.sqrt(3)))), "assertObjectEquals");
+	
 	function TestLine_SetByPointAndAngleNegativeAngle()
 	{
 		var firstLine = new Line();
@@ -173,7 +251,41 @@ function addLineTests()
 	}
 	TestingManager.addTest("TestLine_SetByPointAndAngleNegativeAngle",TestLine_SetByPointAndAngleNegativeAngle, new Line(-1/Math.sqrt(3),1,-(4-1/(Math.sqrt(3)))), "assertObjectEquals");
 	
-	// TODO: Test for solid vertical and horizontal angles
+	function TestLine_SetByPointAndAngleVerticalHalfPi()
+	{
+		var firstLine = new Line();
+		firstLine.setByPointAndAngle(1, 4, Math.PI/2);
+		
+		return firstLine;
+	}
+	TestingManager.addTest("TestLine_SetByPointAndAngleVerticalHalfPi",TestLine_SetByPointAndAngleVerticalHalfPi, new Line(1,0,-1), "assertObjectEquals");
+	
+	function TestLine_SetByPointAndAngleVerticalNegativeHalfPi()
+	{
+		var firstLine = new Line();
+		firstLine.setByPointAndAngle(1, 4, -(Math.PI/2));
+		
+		return firstLine;
+	}
+	TestingManager.addTest("TestLine_SetByPointAndAngleVerticalNegativeHalfPi",TestLine_SetByPointAndAngleVerticalNegativeHalfPi, new Line(1,0,-1), "assertObjectEquals");
+	
+	function TestLine_SetByPointAndAngleHorizontalPi()
+	{
+		var firstLine = new Line();
+		firstLine.setByPointAndAngle(1, 4, Math.PI);
+		
+		return firstLine;
+	}
+	TestingManager.addTest("TestLine_SetByPointAndAngleHorizontalPi",TestLine_SetByPointAndAngleHorizontalPi, new Line(0,1,-4), "assertObjectEquals");
+	
+	function TestLine_SetByPointAndAngleZero()
+	{
+		var firstLine = new Line();
+		firstLine.setByPointAndAngle(1, 4, 0);
+		
+		return firstLine;
+	}
+	TestingManager.addTest("TestLine_SetByPointAndAngleZero",TestLine_SetByPointAndAngleZero, new Line(0,1,-4), "assertObjectEquals");
 }
 
 // these are stress tests and should not be used in production

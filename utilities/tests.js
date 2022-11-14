@@ -346,7 +346,7 @@ var TestingManager = (
 				var passedTestCount = 0;
 				
 				TestingManager.log(`Testing everything! Running a total of ${totalTestCount} tests.`);
-				
+				var startTime = new Date();
 				tests.forEach(test => 
 				{
 					if(test.run())
@@ -354,8 +354,10 @@ var TestingManager = (
 						passedTestCount++;
 					}
 				});
+				var endTime = new Date();
+				var elapsedTime = endTime - startTime;
 				
-				TestingManager.log(`Testing complete. ${passedTestCount}/${totalTestCount} passed, which is a success rate of ${(100 * passedTestCount/totalTestCount).toFixed(2)}%.`);
+				TestingManager.log(`Testing complete. ${passedTestCount}/${totalTestCount} passed, which is a success rate of ${(100 * passedTestCount/totalTestCount).toFixed(2)}%. Completed in ${elapsedTime}ms.`);
 			},
 			
 			/**
