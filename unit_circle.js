@@ -65,12 +65,12 @@ function draw()
 		
 		let fontSize = 18;
 		let font = "Times New Roman";
+		context.font = fontSize + "px " + font;
 				
 		var centerX = canvas.width / 2;
 		var centerY = canvas.height / 2;
 		
 		context.fillStyle = "black";
-		context.font = fontSize + "px " + font;
 		context.lineWidth = 0.5;
 		
 		// draw the basis vectors
@@ -146,6 +146,8 @@ function draw()
 			var textMetric = context.measureText(text);
 			context.fillText(text, centerX + vector.x - (textMetric.width/2)
 				, centerY + vector.y + (fontSize/2));
+				
+			// draw Math.tan(angle);
 		}
 		// draw the angle selector
 		var angleSelector = draggables[0];
@@ -158,17 +160,40 @@ function draw()
 		context.lineTo(angleSelector.position.x, angleSelector.position.y);
 		context.stroke();
 		
-		let angleVector = new Vector(angleSelector.position.x - centerX, angleSelector.position.y - centerY);
-		var text = angleVector.getAngle().toFixed(2);
+		// Tooltip for Angles
+		fontSize = 18;
+		font = "Monospace";
+		context.font = fontSize + "px " + font;
+		// draw a white rectangle first for text visibility 
+		var text = `XXXXXXXXXXXXX`; //placeholder for spacing
 		var textMetric = context.measureText(text);
-		// draw a white patch first for text visibility 
 		context.fillStyle = "white";
 		context.fillRect(angleSelector.position.x + 12
-			,angleSelector.position.y-fontSize/2
+			,angleSelector.position.y-fontSize/2-2
 			,textMetric.width
-			,fontSize);
+			,fontSize*4+4);
+		// tooltip for angle 
+		let angleVector = new Vector(angleSelector.position.x - centerX, angleSelector.position.y - centerY);
+		let angle = angleVector.getAngle();
+		var text = `angle: ${angle.toFixed(2)}`;
+		var textMetric = context.measureText(text);
 		context.fillStyle = "black";
 		context.fillText(text, angleSelector.position.x + 12, angleSelector.position.y + fontSize/2 - 2);
+		// tooltip for sin
+		var text = `sin  : ${Math.sin(angle).toFixed(2)}`;
+		var textMetric = context.measureText(text);
+		context.fillStyle = "black";
+		context.fillText(text, angleSelector.position.x + 12, angleSelector.position.y + fontSize/2 - 2 + fontSize * 1);
+		// tooltip for cos
+		var text = `cos  : ${Math.cos(angle).toFixed(2)}`;
+		var textMetric = context.measureText(text);
+		context.fillStyle = "black";
+		context.fillText(text, angleSelector.position.x + 12, angleSelector.position.y + fontSize/2 - 2 + fontSize * 2);
+		// tooltip for tan
+		var text = `tan  : ${Math.tan(angle).toFixed(2)}`;
+		var textMetric = context.measureText(text);
+		context.fillStyle = "black";
+		context.fillText(text, angleSelector.position.x + 12, angleSelector.position.y + fontSize/2 - 2 + fontSize * 3);
 		
 		needsUpdating = false;
 	}
@@ -262,4 +287,3 @@ function drawCircle(context, circle, colour)
 	context.closePath();
 	context.fill();
 }
-

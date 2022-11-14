@@ -10,6 +10,7 @@ function initialize()
 {
 	addVectorTests();
 	addLineTests();
+	//addLineTests_Performance();
 	
 	TestingManager.runTests();
 }

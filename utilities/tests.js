@@ -80,6 +80,7 @@ var TestingManager = (
 			// ensure repeat integrity 
 			if(!(this.repeat > 0 && Number.isInteger(this.repeat))) this.logError(`repeat '${this.repeat}' is invalid, only integers greater than 0 allowed.`);
 			
+			var startTime = new Date();
 			for(var index = 0; index < this.repeat; index++)
 			{
 				try 
@@ -94,14 +95,17 @@ var TestingManager = (
 				// if it fails just once, then it's already failed 
 				if(!this.condition(output))
 				{
-					TestingManager.log(`failed: ${this.name} at repeat ${index}`);
+					var endTime = new Date();
+					var elapsedTime = endTime - startTime;
+					TestingManager.log(`failed: ${this.name} at repeat ${index} in ${elapsedTime}ms`);
 					TestingManager.log(`	expected: ${JSON.stringify(this.expected)}`);
 					TestingManager.log(`	output: ${JSON.stringify(output)}`);
 					return false;
 				}
 			}
-			
-			TestingManager.log(`passed: ${this.name}`);
+			var endTime = new Date();
+			var elapsedTime = endTime - startTime;
+			TestingManager.log(`passed: ${this.name} in ${elapsedTime}ms`);
 			return true;
 		}
 		
@@ -258,7 +262,10 @@ var TestingManager = (
 		Test.prototype.assertObjectEquals = function(output)
 		{
 			if(!this.expected) this.logError(`Test.assertObjectEquals: this.expected is not an object.`);
-			if(this.expected.equals) return this.expected.equals(output);
+			if(this.expected.equals) 
+			{
+				return this.expected.equals(output);
+			}
 			for(var key in this.expected)
 			{				
 				if(!(this.expected[key] === output[key]))

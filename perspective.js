@@ -5,6 +5,7 @@
 	// TODO: https://www.sketchlikeanarchitect.com/blog/what-type-of-perspective-should-you-choose
 
 // different methods for perspective: https://www.artistsnetwork.com/art-mediums/learn-to-draw-perspective/
+// notes: implement this instead: https://learn.toonboom.com/modules/stay-on-point-with-new-rulers-and-guides/topic/3-point-perspective-horizontal-pan
 
 window.onload = function()
 {
