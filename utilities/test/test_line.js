@@ -63,6 +63,15 @@ function addLineTests()
 	}
 	TestingManager.addTest("TestLine_IsEqualWhenZeroA",TestLine_IsEqualWhenZeroA, true, "assertEquals");
 	
+	function TestLine_IsEqualWhenZeroAMultiples()
+	{
+		var firstLine = new Line(0, 6, 7);
+		var secondLine = new Line(0, 12, 14);
+
+		return firstLine.equals(secondLine);
+	}
+	TestingManager.addTest("TestLine_IsEqualWhenZeroAMultiples",TestLine_IsEqualWhenZeroAMultiples, true, "assertEquals");
+	
 	function TestLine_IsNotEqualWhenZeroA()
 	{
 		var firstLine = new Line(0, 6, 7);
@@ -80,6 +89,15 @@ function addLineTests()
 		return firstLine.equals(secondLine);
 	}
 	TestingManager.addTest("TestLine_IsEqualWhenZeroB",TestLine_IsEqualWhenZeroB, true, "assertEquals");
+	
+	function TestLine_IsEqualWhenZeroBMultiples()
+	{
+		var firstLine = new Line(5, 0, 7);
+		var secondLine = new Line(10, 0, 14);
+
+		return firstLine.equals(secondLine);
+	}
+	TestingManager.addTest("TestLine_IsEqualWhenZeroBMultiples",TestLine_IsEqualWhenZeroBMultiples, true, "assertEquals");
 	
 	function TestLine_IsEqualWhenZeroAll()
 	{
@@ -139,6 +157,103 @@ function addLineTests()
 		return firstLine.isParallel(secondLine);
 	}
 	TestingManager.addTest("TestLine_IsParallelWhenIsNegative",TestLine_IsParallelWhenIsNegative, true, "assertEquals");
+	
+	function TestLine_IsParallelTwoVertical()
+	{
+		var firstLine = new Line(1, 0, -5);
+		var secondLine = new Line(1, 0, -4);
+		
+		return firstLine.isParallel(secondLine);
+	}
+	TestingManager.addTest("TestLine_IsParallelTwoVertical",TestLine_IsParallelTwoVertical, true, "assertEquals");
+	
+	function TestLine_IsParallelTwoVerticalMultiples()
+	{
+		var firstLine = new Line(1, 0, -5);
+		var secondLine = new Line(2, 0, -10);
+		
+		return firstLine.isParallel(secondLine);
+	}
+	TestingManager.addTest("TestLine_IsParallelTwoVerticalMultiples",TestLine_IsParallelTwoVerticalMultiples, true, "assertEquals");
+	
+	function TestLine_IsParallelTwoHorizontal()
+	{
+		var firstLine = new Line(0, 1, -5);
+		var secondLine = new Line(0, 1, -4);
+		
+		return firstLine.isParallel(secondLine);
+	}
+	TestingManager.addTest("TestLine_IsParallelTwoHorizontal",TestLine_IsParallelTwoHorizontal, true, "assertEquals");
+	
+	function TestLine_IsParallelTwoHorizontalMultiples()
+	{
+		var firstLine = new Line(0, 1, -5);
+		var secondLine = new Line(0, 2, -10);
+		
+		return firstLine.isParallel(secondLine);
+	}
+	TestingManager.addTest("TestLine_IsParallelTwoHorizontalMultiples",TestLine_IsParallelTwoHorizontalMultiples, true, "assertEquals");
+	
+	function TestLine_IsNotParallelVerticalHorizontal()
+	{
+		var firstLine = new Line(1, 0, -5);
+		var secondLine = new Line(0, 1, -5);
+		
+		return firstLine.isParallel(secondLine);
+	}
+	TestingManager.addTest("TestLine_IsNotParallelVerticalHorizontal",TestLine_IsNotParallelVerticalHorizontal, false, "assertEquals");
+	
+	function TestLine_IsNotParallelOneVertical()
+	{
+		var firstLine = new Line(1, 0, -5);
+		var secondLine = new Line(1, 2, -5);
+		
+		return firstLine.isParallel(secondLine);
+	}
+	TestingManager.addTest("TestLine_IsNotParallelOneVertical",TestLine_IsNotParallelOneVertical, false, "assertEquals");
+	
+	function TestLine_IsNotParallelOneHorizontal()
+	{
+		var firstLine = new Line(0, 1, -5);
+		var secondLine = new Line(1, 2, -5);
+		
+		return firstLine.isParallel(secondLine);
+	}
+	TestingManager.addTest("TestLine_IsNotParallelOneHorizontal",TestLine_IsNotParallelOneHorizontal, false, "assertEquals");
+	
+	/* Test isHorizontal and isVertical */
+	function TestLine_IsHorizontalZeroA()
+	{
+		var firstLine = new Line(0, 1, -5);
+		
+		return firstLine.isHorizontal();
+	}
+	TestingManager.addTest("TestLine_IsHorizontalZeroA",TestLine_IsHorizontalZeroA, true, "assertEquals");
+	
+	function TestLine_IsNotHorizontalNotZeroA()
+	{
+		var firstLine = new Line(7, 1, -5);
+		
+		return firstLine.isHorizontal();
+	}
+	TestingManager.addTest("TestLine_IsNotHorizontalNotZeroA",TestLine_IsNotHorizontalNotZeroA, false, "assertEquals");
+	
+	function TestLine_IsVerticalZeroB()
+	{
+		var firstLine = new Line(7, 0, -5);
+		
+		return firstLine.isVertical();
+	}
+	TestingManager.addTest("TestLine_IsVerticalZeroB",TestLine_IsVerticalZeroB, true, "assertEquals");
+	
+	function TestLine_IsNotVerticalNotZeroB()
+	{
+		var firstLine = new Line(7, 1, -5);
+		
+		return firstLine.isVertical();
+	}
+	TestingManager.addTest("TestLine_IsNotVerticalNotZeroB",TestLine_IsNotVerticalNotZeroB, false, "assertEquals");
+	
 	/* Test the function Line.getIntersection(line) */
 	
 	// while technically there are infinite intersections
@@ -186,6 +301,51 @@ function addLineTests()
 		return firstLine.getIntersection(secondLine);
 	}
 	TestingManager.addTest("TestLine_GetIntersectionPerpendicularLines",TestLine_GetIntersectionPerpendicularLines, new Vector(-3, 0), "assertObjectEquals");
+		
+	function TestLine_GetIntersectionTwoHorizontalReturnsNull()
+	{
+		var firstLine = new Line(0, 1, -3);
+		var secondLine = new Line(0, 1, -4);
+		
+		return firstLine.getIntersection(secondLine);
+	}
+	TestingManager.addTest("TestLine_GetIntersectionTwoHorizontalReturnsNull",TestLine_GetIntersectionTwoHorizontalReturnsNull, null, "assertEquals");
+	
+	function TestLine_GetIntersectionTwoVerticalReturnsNull()
+	{
+		var firstLine = new Line(1, 0, -3);
+		var secondLine = new Line(1, 0, -4);
+		
+		return firstLine.getIntersection(secondLine);
+	}
+	TestingManager.addTest("TestLine_GetIntersectionTwoVerticalReturnsNull",TestLine_GetIntersectionTwoVerticalReturnsNull, null, "assertEquals");
+	
+	function TestLine_GetIntersectionOneVertical()
+	{
+		var firstLine = new Line(2, -3, 5);
+		var secondLine = new Line(2, 0, -4);
+		
+		return firstLine.getIntersection(secondLine);
+	}
+	TestingManager.addTest("TestLine_GetIntersectionOneVertical",TestLine_GetIntersectionOneVertical, new Vector(2, 3), "assertObjectEquals");
+	
+	function TestLine_GetIntersectionOneHorizontal()
+	{
+		var firstLine = new Line(2, -3, 5);
+		var secondLine = new Line(0, 3, -9);
+		
+		return firstLine.getIntersection(secondLine);
+	}
+	TestingManager.addTest("TestLine_GetIntersectionOneHorizontal",TestLine_GetIntersectionOneHorizontal, new Vector(2, 3), "assertObjectEquals");
+	
+	function TestLine_GetIntersectionHorizontalVertical()
+	{
+		var firstLine = new Line(2, 0, -4);
+		var secondLine = new Line(0, 3, -9);
+		
+		return firstLine.getIntersection(secondLine);
+	}
+	TestingManager.addTest("TestLine_GetIntersectionHorizontalVertical",TestLine_GetIntersectionHorizontalVertical, new Vector(2, 3), "assertObjectEquals");
 	
 	/* Test the function Line.setByTwoPoints(x1, y1, x2, y2) */
 	function TestLine_SetByTwoPoints()
@@ -286,6 +446,10 @@ function addLineTests()
 		return firstLine;
 	}
 	TestingManager.addTest("TestLine_SetByPointAndAngleZero",TestLine_SetByPointAndAngleZero, new Line(0,1,-4), "assertObjectEquals");
+	
+	// Note bene: sigFig15Equals should be factored out into its own module.
+	// Yet, for sake for convenience we will not, for now, until we have enough functions that can be factored out.
+	// Thus, we will not test it for now, assuming that present tests are enough coverage (there IS a floating point test somewhere here).
 }
 
 // these are stress tests and should not be used in production

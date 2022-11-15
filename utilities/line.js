@@ -20,6 +20,8 @@ function Line(a,b,c)
 	this.c = c;
 }
 
+Line.prototype.PRECISION = 15; // constant for floating point significant figures.
+
 Line.prototype.getIntersection = function(line)
 {
 	// coincident lines have infinite intersections! 
@@ -38,13 +40,38 @@ Line.prototype.getIntersection = function(line)
 
 Line.prototype.isParallel = function(line)
 {
+	const PRECISION = this.PRECISION;
+	// special case for horizontal lines 
+	if(this.sigFig15Equals(this.a, 0) || this.sigFig15Equals(line.a, 0))
+	{
+		if(this.sigFig15Equals(this.a, line.a)
+			&& this.sigFig15Equals(this.b / this.b, line.b / line.b))
+		{
+			return true;
+		}
+		return false;
+	}
+	
 	// if slope is equal, they are parallel
 	// to get slope, we divide both by their own a's in case they are multiples of each other
-	if(this.a / this.a === line.a / line.a
-		&& this.b / this.a === line.b / line.a)
+	if(this.sigFig15Equals(this.a / this.a, line.a / line.a)
+		&& this.sigFig15Equals(this.b / this.a, line.b / line.a))
 	{
 		return true;
 	}
+	return false;
+}
+
+// We do not support infinities. Use 0 instead.
+Line.prototype.isHorizontal = function()
+{
+	if(this.a === 0) return true;
+	return false;
+}
+
+Line.prototype.isVertical = function()
+{
+	if(this.b === 0) return true;
 	return false;
 }
 
@@ -59,32 +86,39 @@ Line.prototype.equals = function(line)
 		console.warn(`Line.equals(line): line is null.`);
 		return false;
 	}
-	const PRECISION = 15;
 	// special case for when a is 0
-	if(this.a === 0 || line.a === 0)
+	if(this.sigFig15Equals(this.a, 0) || this.sigFig15Equals(line.a, 0))
 	{
-		// to be clear, negative 0 is equal to positive 0.
-		if(
-			this.a === line.a
-			&&(this.b / this.b).toPrecision(PRECISION) === (line.b / line.b).toPrecision(PRECISION)
-			&& (this.c / this.b).toPrecision(PRECISION) === (line.c / line.b).toPrecision(PRECISION))
+		// we keep b/b comparisons to suss out NaN and Infinities (hopefully)
+		if(this.sigFig15Equals(this.a, line.a)
+			&& this.sigFig15Equals(this.b / this.b, line.b / line.b)
+			&& this.sigFig15Equals(this.c / this.b, line.c / line.b))
 		{
 			return true;
 		}
 		return false;
 	}
-	// fudge because floating point errors.
-	// remember floating point, is, well, floating.
-	// that means if you have more than 16 digits to the left of the decimal point, than there is no decimal.
-	// ie, 1e16 + 1/3 has no decimal, while 1e15 + 1/3 results in 1000000000000000.4
-	// thus, we use toPrecision() in our fudging instead of toFixed(), as you might expect.
-	if((this.a / this.a).toPrecision(PRECISION) === (line.a / line.a).toPrecision(PRECISION)
-		&& (this.b / this.a).toPrecision(PRECISION) === (line.b / line.a).toPrecision(PRECISION)
-		&& (this.c / this.a).toPrecision(PRECISION) === (line.c / line.a).toPrecision(PRECISION))
+	
+	if(this.sigFig15Equals(this.a / this.a, line.a / line.a)
+		&& this.sigFig15Equals(this.b / this.a, line.b / line.a)
+		&& this.sigFig15Equals(this.c / this.a, line.c / line.a))
 	{
 		return true;
 	}
 	return false;
+}
+
+/**
+	So called because we only compare 15 significant figures,
+		effectively shaving off the last digit in floating point calculations.
+	Remember floating point, is, well, floating, and keeps only a limited amount (16) of sig figs.	
+		1e16 + 1/3 has no decimal, while 1e15 + 1/3 results in 1000000000000000.4
+	It is relatively slow for a simple function.
+ */
+Line.prototype.sigFig15Equals = function(a, b)
+{	
+	let precision = 15;
+	return (a).toPrecision(precision) === (b).toPrecision(precision);
 }
 
 Line.prototype.setByTwoPoints = function(x1, y1, x2, y2)
