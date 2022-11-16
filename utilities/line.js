@@ -20,8 +20,6 @@ function Line(a,b,c)
 	this.c = c;
 }
 
-Line.prototype.PRECISION = 15; // constant for floating point significant figures.
-
 Line.prototype.getIntersection = function(line)
 {
 	// coincident lines have infinite intersections! 

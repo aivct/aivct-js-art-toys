@@ -3,6 +3,8 @@
 	Override isInBounds for specific shape implementations.
 	We use (x,y) in most mouse related contexts because that's what we are given, 
 		but where possible, we use a vector because it's got the calculation utils baked in.
+		
+	Dependencies: vector.js
  */
 function Draggable(x,y)
 {

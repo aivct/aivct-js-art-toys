@@ -72,6 +72,13 @@ Vector.prototype.getAngle = function()
 	return Math.atan2(this.y, this.x);
 }
 
+Vector.prototype.getMidpointTo = function(vector)
+{
+	var x = (this.x + vector.x)/2;
+	var y = (this.y + vector.y)/2;
+	return new Vector(x,y);
+}
+
 /*
 	Output in the JS canvas coordinate system (TL=(0,0))
 	             PI/2

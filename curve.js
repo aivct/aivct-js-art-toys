@@ -108,6 +108,18 @@ function drawCurve(context)
 	let controlPointTwo = draggables[2];
 	let endPoint = draggables[3];
 	
+	let directionVector = originPoint.position.clone();
+	directionVector.minus(endPoint.position);
+	let length = directionVector.getLength();
+	let midPointVector = originPoint.position.clone();
+	midPointVector.add(endPoint.position);
+	midPointVector.scale(1/2);
+	// draw red guideline
+	context.strokeStyle = "red";
+	context.beginPath();
+	context.arc(midPointVector.x, midPointVector.y, length/2, 0, Math.PI * 2);
+	context.stroke();
+	
 	// draw the points
 	drawCircle(context,originPoint,"blue");
 	drawCircle(context,controlPointOne,"red");
