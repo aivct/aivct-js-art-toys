@@ -15,6 +15,9 @@ const DENSITY_MEDIUM_LINECOUNT = 64;
 const DENSITY_HIGH_LINECOUNT = 128;
 const DENSITY_VERY_HIGH_LINECOUNT = 256;
 
+const FONT_SIZE = 18;
+const FONT = "Times New Roman";
+
 var canvas;
 var context;
 var needsUpdating = true;
@@ -40,6 +43,8 @@ function initialize()
 	canvas.addEventListener("mousemove",onmousemove, false);
 	
 	context = canvas.getContext("2d");
+	// setup context
+	context.font = `${FONT_SIZE}px ${FONT}`;
 	
 	// create more UI 
 	createModeSelector(PERSPECTIVE_MODES,(event)=>
@@ -65,6 +70,7 @@ function initialize()
 	// https://termespheres.com/6-point-perspective/
 	
 	onMode("1-point");
+	
 	// draw for output
 	window.requestAnimationFrame(draw);
 }
@@ -281,163 +287,28 @@ function getLineCount()
 
 function draw1PointLinearPerspective(context)
 {
-	let showMoreLines = true;
-	let mirrorVertical = true;
+	let showConstructionLines = true;
 	
 	let lineCount = getLineCount();
 	let firstPerspectivePoint = perspectivePoints[0];
 	let stationPoint = perspectivePoints[1];
-	
-	let canvasBottomLine = new Line();
-	canvasBottomLine.setByPointAndAngle(0, canvas.height, 0);
-	let canvasLeftLine = new Line();
-	canvasLeftLine.setByPointAndAngle(0,0,0);
-	let canvasRightLine = new Line();
-	canvasRightLine.setByPointAndAngle(canvas.width,0,0);
-	
-	// get30deg angle to horizon
-	let horizonLine = new Line();
-	horizonLine.setByPointAndAngle(firstPerspectivePoint.position.x, firstPerspectivePoint.position.y, 0);
-	
-	// right is 0, up is -Math.PI/2
-	let VP30Line = new Line();
-	VP30Line.setByPointAndAngle(stationPoint.position.x, stationPoint.position.y, -(Math.PI/3));
-	// get intersection 
-	let VP30Point = VP30Line.getIntersection(horizonLine);
-	
-	let VP45Line = new Line();
-	VP45Line.setByPointAndAngle(stationPoint.position.x, stationPoint.position.y, -(Math.PI/4));
-	// get intersection 
-	let VP45Point = VP45Line.getIntersection(horizonLine);
-	let FOV60Radius = VP30Point.getDistanceTo(firstPerspectivePoint.position);
-	
-	// squareLines which coincide with perspective point lines
-	let constructionLineSize = Math.PI/16;
-	if(densityMode === "medium") constructionLineSize = Math.PI/32;
-	if(densityMode === "high") constructionLineSize = Math.PI/64;
-	if(densityMode === "very-high") constructionLineSize = Math.PI/128;
-	
-	let squareLeftLine = new Line();
-	squareLeftLine.setByPointAndAngle(firstPerspectivePoint.position.x, firstPerspectivePoint.position.y, Math.PI/2 + constructionLineSize);
-	
-	let squareLeftLine_BottomIntersectionPoint = squareLeftLine.getIntersection(canvasBottomLine);
-	
-	let squareRightLine = new Line();
-	squareRightLine.setByPointAndAngle(firstPerspectivePoint.position.x, firstPerspectivePoint.position.y, Math.PI/2 - constructionLineSize);
-	
-	let squareRightLine_BottomIntersectionPoint = squareRightLine.getIntersection(canvasBottomLine);
 	
 	// draw perspective points
 	context.lineWidth = 0.25;
 	context.strokeStyle = "black";
 	drawPerspectiveLinesLinear(context, firstPerspectivePoint, lineCount);
 	
-	// draw guiding lines up and down
-	// drawGuidingLines(context, firstPerspectivePoint, lineCount, -1);
-	// drawGuidingLines(context, firstPerspectivePoint, lineCount, 1);
-	
-	// temp
-	let previousY = 0;
-	
-	let previousLine = new Line();
-	previousLine.setByPointAndAngle(VP45Point.x, VP45Point.y, Math.PI - Math.PI/24);
-	for(let lineNumber = 0; lineNumber < lineCount; lineNumber++)
-	{
-		// intersection of previousLine and the left
-		let leftIntersectionPoint = previousLine.getIntersection(squareLeftLine);
+	// draw guiding lines (and the construction too)
+	drawHorizontalGuidingLines(context, firstPerspectivePoint, stationPoint, showConstructionLines);
 		
-		// when the the leftmost intersection is actually GREATER than the VP X, then it's time to pack it up.
-		// we do not grow eyes on the back of our head. Save that for 6-point perspective.
-		if(leftIntersectionPoint.x >= VP45Point.x) break;
-		
-		// horizontal
-		let guidingHorizontalLine = new Line();
-		guidingHorizontalLine.setByPointAndAngle(leftIntersectionPoint.x, leftIntersectionPoint.y, 0);
-		
-		let rightIntersectionPoint = guidingHorizontalLine.getIntersection(squareRightLine);
-		
-		if(rightIntersectionPoint.x >= VP45Point.x) break;
-		
-		// get nextLine
-		previousLine = new Line();
-		previousLine.setByTwoPoints(VP45Point.x, VP45Point.y, rightIntersectionPoint.x, rightIntersectionPoint.y);
-		// draw guidingLines
-		context.beginPath();
-		context.moveTo(0, leftIntersectionPoint.y);
-		context.lineTo(canvas.width, rightIntersectionPoint.y);
-		context.stroke();
-		if(mirrorVertical)
-		{
-			var mirrorY = leftIntersectionPoint.y - firstPerspectivePoint.position.y;
-			mirrorY = firstPerspectivePoint.position.y - mirrorY;
-			context.beginPath();
-			context.moveTo(0, mirrorY);
-			context.lineTo(canvas.width, mirrorY);
-			context.stroke();
-		}
-		
-		if(showMoreLines)
-		{
-			// horizontal construction lines
-			context.beginPath();
-			context.moveTo(leftIntersectionPoint.x, leftIntersectionPoint.y);
-			context.lineTo(rightIntersectionPoint.x, rightIntersectionPoint.y);
-			context.stroke();
-			// 45 deg construction legs
-			context.beginPath();
-			context.moveTo(VP45Point.x, VP45Point.y);
-			context.lineTo(leftIntersectionPoint.x, leftIntersectionPoint.y);
-			context.stroke();
-		}
-		//console.log(leftIntersectionPoint.y - previousY);
-		//console.log(leftIntersectionPoint.y/previousY);
-		previousY = leftIntersectionPoint.y;
-	}
-	
 	// draw the horizon line
 	context.lineWidth = 1.0;
 	context.strokeStyle = "red";
-	drawHorizonLine(context, firstPerspectivePoint);
+	context.beginPath();
+	context.moveTo(0, firstPerspectivePoint.position.y);
+	context.lineTo(canvas.width, firstPerspectivePoint.position.y);
+	context.stroke();
 	
-	// show additional lines 
-	if(showMoreLines)
-	{
-		// SP to CVP
-		context.strokeStyle = "black";
-		context.beginPath();
-		context.moveTo(stationPoint.position.x, stationPoint.position.y);
-		context.lineTo(firstPerspectivePoint.position.x, firstPerspectivePoint.position.y);
-		context.stroke();
-		
-		// SP to VP30
-		context.beginPath();
-		context.moveTo(stationPoint.position.x, stationPoint.position.y);
-		context.lineTo(VP30Point.x, VP30Point.y);
-		context.stroke();
-		
-		// SP to VP45
-		context.beginPath();
-		context.moveTo(stationPoint.position.x, stationPoint.position.y);
-		context.lineTo(VP45Point.x, VP45Point.y);
-		context.stroke();
-		
-		// left and right square intersection for construction
-		context.beginPath();
-		context.moveTo(firstPerspectivePoint.position.x, firstPerspectivePoint.position.y);
-		context.lineTo(squareLeftLine_BottomIntersectionPoint.x, squareLeftLine_BottomIntersectionPoint.y);
-		context.stroke();
-		
-		context.beginPath();
-		context.moveTo(firstPerspectivePoint.position.x, firstPerspectivePoint.position.y);
-		context.lineTo(squareRightLine_BottomIntersectionPoint.x, squareRightLine_BottomIntersectionPoint.y);
-		context.stroke();
-		
-		// 60 deg FOV cone circle
-		context.strokeStyle = "red";
-		context.beginPath();
-		context.arc(firstPerspectivePoint.position.x, firstPerspectivePoint.position.y, FOV60Radius, 0, Math.PI * 2);
-		context.stroke();
-	}
 	// draw the sole perspective point 
 	var colour = lineColours[0];
 	drawDraggableCircle(context, firstPerspectivePoint, colour); 
@@ -460,9 +331,9 @@ function draw2PointLinearPerspective(context)
 	drawPerspectiveLinesLinear(context, secondPerspectivePoint, lineCount);
 	
 	// draw the horizon line
-	context.lineWidth = 1.0;
-	context.strokeStyle = "red";
-	drawHorizonLine(context, firstPerspectivePoint);
+	//context.lineWidth = 1.0;
+	//context.strokeStyle = "red";
+	//drawHorizonLine(context, firstPerspectivePoint);
 	
 	// draw the perspective points
 	var colour = lineColours[0];
@@ -639,30 +510,183 @@ function drawDraggableCircle(context, circle, colour)
 function drawHorizonLine(context, circle)
 {
 	// to the left and right of the circle to draw
-	let radius = 2000;
-	
 	context.beginPath();
-	context.moveTo(circle.position.x - radius, circle.position.y);
-	context.lineTo(circle.position.x + radius, circle.position.y);
+	context.moveTo(0, circle.position.y);
+	context.lineTo(canvas.width, circle.position.y);
 	context.stroke();
 }
 
-function drawGuidingLines(context, circle, lineCount, direction = 1)
+// draw guiding lines which are artistically accurate (TM)
+function drawHorizontalGuidingLines(context, centerVanishingPoint, stationPoint, showConstructionLines = false)
 {
-	// to the left and right of the circle to draw
-	let radius = 2000;
-	// up and down too
-	let initialOffset = 100;
+	let lineCount = getLineCount();
 	
-	for(var index = 0; index < lineCount; index++)
+	let constructionLineSize = Math.PI/16;
+	if(densityMode === "medium") constructionLineSize = Math.PI/32;
+	if(densityMode === "high") constructionLineSize = Math.PI/64;
+	if(densityMode === "very-high") constructionLineSize = Math.PI/128;
+	
+	// abbreviated vars are all vectors, as courtesy variables
+	/*
+		CVP   - Center Vanishing Point
+		SP    - Station Point
+		VP30  - 30 Degree Vanishing Point
+		VP45  - 45 Degree Vanishing Point
+		FOV60 - 60 Degree Field of View
+	 */
+	let CVP = centerVanishingPoint.position;
+	let SP = stationPoint.position;
+	
+	// calculate and derive everything.
+	// really, all we need are CVP and SP, and the rest is courtesy.
+	// we centralize the calculations here because... OCD. And good code, I guess.
+	
+	// lines
+	let canvasBottomLine = new Line();
+	canvasBottomLine.setByPointAndAngle(0, canvas.height, 0);
+	let canvasLeftLine = new Line();
+	canvasLeftLine.setByPointAndAngle(0,0,0);
+	let canvasRightLine = new Line();
+	canvasRightLine.setByPointAndAngle(canvas.width,0,0);
+	// get30deg angle to horizon
+	let horizonLine = new Line();
+	horizonLine.setByPointAndAngle(CVP.x, CVP.y, 0);
+	// right is 0, up is -Math.PI/2
+	let VP30Line = new Line();
+	VP30Line.setByPointAndAngle(SP.x, SP.y, -(Math.PI/3));
+	let VP30 = VP30Line.getIntersection(horizonLine);
+	
+	let VP45Line = new Line();
+	VP45Line.setByPointAndAngle(SP.x, SP.y, -(Math.PI/4));
+	let VP45 = VP45Line.getIntersection(horizonLine);
+	
+	let FOV60Radius = VP30.getDistanceTo(CVP);
+	
+	// squareLines which coincide with perspective point lines
+	let squareLeftLine = new Line();
+	squareLeftLine.setByPointAndAngle(CVP.x, CVP.y, Math.PI/2 + constructionLineSize);
+	let squareLeftLineEndPoint = squareLeftLine.getIntersection(canvasBottomLine);
+	
+	let squareRightLine = new Line();
+	squareRightLine.setByPointAndAngle(CVP.x, CVP.y, Math.PI/2 - constructionLineSize);
+	let squareRightLineEndPoint = squareRightLine.getIntersection(canvasBottomLine);
+	
+	/*
+		we're being quite naive by literally doing as an artist does,
+		using diagonal construction lines to inform our next square.
+		this can introduce errors and is quite prone to propagation errors,
+		but in absence of me figuring out what the formula is, it works well enough for now.
+		
+		programming note: most polynomials are a good enough approximation, but it'll always be off in both directions. it's not a simple polynomial.
+	 */
+	let previousLine = new Line();
+	// init. the value was found empirically (ie, trial and error) but it shouldn't change the math.
+	previousLine.setByPointAndAngle(VP45.x, VP45.y, Math.PI - Math.PI/24);
+	for(let lineIndex = 0; lineIndex < lineCount; lineIndex++)
 	{
-		let y = direction * (index * index * (100 / lineCount) + initialOffset);
+		let leftIntersectionPoint = previousLine.getIntersection(squareLeftLine);
+		console.log(leftIntersectionPoint.y);
+		/* 
+			this will form part of our square. 
+			from one diagonal to the next, 
+			it will be capped by the next horizontal line
+		 */
+		let guidingHorizontalLine = new Line();
+		guidingHorizontalLine.setByPointAndAngle(leftIntersectionPoint.x, leftIntersectionPoint.y, 0);
+		
+		let rightIntersectionPoint = guidingHorizontalLine.getIntersection(squareRightLine);
+		// if we don't it wraps around to the top and breaks things.
+		if(leftIntersectionPoint.x >= VP45.x) break;
+		if(rightIntersectionPoint.x >= VP45.x) break;
+		// now actually draw.
+		context.beginPath();
+		context.moveTo(0, leftIntersectionPoint.y);
+		context.lineTo(canvas.width, rightIntersectionPoint.y);
+		context.stroke();
+		// draw it mirrored for the top
+		var mirrorY = leftIntersectionPoint.y - CVP.y;
+		mirrorY = CVP.y - mirrorY;
+		context.beginPath();
+		context.moveTo(0, mirrorY);
+		context.lineTo(canvas.width, mirrorY);
+		context.stroke();
+		
+		// construction lines!
+		if(showConstructionLines)
+		{
+			// horizontal construction lines
+			context.beginPath();
+			context.moveTo(leftIntersectionPoint.x, leftIntersectionPoint.y);
+			context.lineTo(rightIntersectionPoint.x, rightIntersectionPoint.y);
+			context.stroke();
+			// 45 deg construction legs
+			context.beginPath();
+			context.moveTo(VP45.x, VP45.y);
+			context.lineTo(leftIntersectionPoint.x, leftIntersectionPoint.y);
+			context.stroke();
+		}
+		
+		// update for the next cycle
+		previousLine = new Line();
+		previousLine.setByTwoPoints(VP45.x, VP45.y, rightIntersectionPoint.x, rightIntersectionPoint.y);
+	}
+	
+	// more construction lines!
+	if(showConstructionLines)
+	{
+		context.strokeStyle = "black";
+		context.lineWidth = 0.5;
+		context.fillStyle = "black";
+		
+		// SP to CVP
+		context.beginPath();
+		context.moveTo(SP.x, SP.y);
+		context.lineTo(CVP.x, CVP.y);
+		context.stroke();
+		
+		// SP to VP30
+		context.beginPath();
+		context.moveTo(SP.x, SP.y);
+		context.lineTo(VP30.x, VP30.y);
+		context.stroke();
+		
+		// SP to VP45
+		context.beginPath();
+		context.moveTo(SP.x, SP.y);
+		context.lineTo(VP45.x, VP45.y);
+		context.stroke();
+		
+		// left and right square intersection for construction
+		context.beginPath();
+		context.moveTo(CVP.x, CVP.y);
+		context.lineTo(squareLeftLineEndPoint.x, squareLeftLineEndPoint.y);
+		context.stroke();
 		
 		context.beginPath();
-		context.moveTo(circle.position.x - radius, circle.position.y + y);
-		context.lineTo(circle.position.x + radius, circle.position.y + y);
+		context.moveTo(CVP.x, CVP.y);
+		context.lineTo(squareRightLineEndPoint.x, squareRightLineEndPoint.y);
 		context.stroke();
+		
+		// 60 deg FOV cone circle
+		context.strokeStyle = "red";
+		context.beginPath();
+		context.arc(CVP.x, CVP.y, FOV60Radius, 0, Math.PI * 2);
+		context.stroke();
+		
+		// Labels
+		// Offsets: Radius and Fontsize
+		drawCenteredText(context, "CVP", CVP.x, CVP.y - 5 - FONT_SIZE);
+		drawCenteredText(context, "SP", SP.x, SP.y - 5 - FONT_SIZE);
+		drawCenteredText(context, "VP30", VP30.x, VP30.y - 5 - FONT_SIZE);
+		drawCenteredText(context, "VP45", VP45.x, VP45.y - 5 - FONT_SIZE);
 	}
+}
+
+// this is NOT a general draw font function. fontSize is baked in. We are using this mostly to be lazy.
+function drawCenteredText(context, text, x, y)
+{
+	var textMetric = context.measureText(text);
+	context.fillText(text, x - textMetric.width/2, y + FONT_SIZE/2);
 }
 
 // classes
