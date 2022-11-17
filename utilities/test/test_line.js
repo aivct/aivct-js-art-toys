@@ -108,6 +108,27 @@ function addLineTests()
 	}
 	TestingManager.addTest("TestLine_IsEqualWhenZeroAll",TestLine_IsEqualWhenZeroAll, true, "assertEquals");
 	
+	function TestLine_IsNotEqualWhenUndefined()
+	{
+		var firstLine = new Line(1, 2, 3);
+		var secondLine = undefined;
+		
+		return firstLine.equals(secondLine);
+	}
+	TestingManager.addTest("TestLine_IsNotEqualWhenUndefined",TestLine_IsNotEqualWhenUndefined, false, "assertEquals");
+	
+	// even though technically the following case is equal
+	// something has gone VERY wrong when we have undefined as a value.
+	// return false, because it shouldn't ever return true in this case.
+	function TestLine_IsNotEqualWhenABCUndefined()
+	{
+		var firstLine = new Line(1, 2, undefined);
+		var secondLine = new Line(1, 2, undefined);
+		
+		return firstLine.equals(secondLine);
+	}
+	TestingManager.addTest("TestLine_IsNotEqualWhenABCUndefined",TestLine_IsNotEqualWhenABCUndefined, false, "assertEquals");
+	
 	/* Test the function Line.isParallel(line) */
 	
 	// again in JS we shall fudge a little. TECHNICALLY speaking, in regular math coincident lines are not parallel. 
@@ -347,6 +368,8 @@ function addLineTests()
 	}
 	TestingManager.addTest("TestLine_GetIntersectionHorizontalVertical",TestLine_GetIntersectionHorizontalVertical, new Vector(2, 3), "assertObjectEquals");
 	
+	// TODO: getIntersectionAIs0
+	
 	/* Test the function Line.setByTwoPoints(x1, y1, x2, y2) */
 	function TestLine_SetByTwoPoints()
 	{
@@ -383,14 +406,17 @@ function addLineTests()
 	TestingManager.addTest("TestLine_SetByTwoPointsHorizontal",TestLine_SetByTwoPointsHorizontal, new Line(0, 1, 5), "assertObjectEquals");
 	
 	/* Test the function Line.setByPointAndAngle(x1, y1, theta) */
-	function TestLine_SetByPointAndAngle()
+	/*
+	ALL OF THESE TESTS NEED TO BE REDONE BECAUSE I WAS AN IDIOT IN DESMOS 
+	//REMEMBER EVERYTHING IS MIRRORED ACCROSS X IN JS
+	function TestLine_SetByPointAndAngle() 
 	{
 		var firstLine = new Line();
 		firstLine.setByPointAndAngle(1, 4, Math.PI/6);
 		
 		return firstLine;
 	}
-	TestingManager.addTest("TestLine_SetByPointAndAngle",TestLine_SetByPointAndAngle, new Line(1/Math.sqrt(3),1,-(4+1/(Math.sqrt(3)))), "assertObjectEquals");
+	TestingManager.addTest("TestLine_SetByPointAndAngle",TestLine_SetByPointAndAngle, new Line(-1/Math.sqrt(3),1,+(4+1/(Math.sqrt(3)))), "assertObjectEquals");
 	
 	// Add 180deg should still produce the same line.
 	function TestLine_SetByPointAndAnglePlusPi()
@@ -400,7 +426,7 @@ function addLineTests()
 		
 		return firstLine;
 	}
-	TestingManager.addTest("TestLine_SetByPointAndAnglePlusPi",TestLine_SetByPointAndAnglePlusPi, new Line(1/Math.sqrt(3),1,-(4+1/(Math.sqrt(3)))), "assertObjectEquals");
+	TestingManager.addTest("TestLine_SetByPointAndAnglePlusPi",TestLine_SetByPointAndAnglePlusPi, new Line(-1/Math.sqrt(3),1,+(4+1/(Math.sqrt(3)))), "assertObjectEquals");
 	
 	function TestLine_SetByPointAndAngleNegativeAngle()
 	{
@@ -409,8 +435,8 @@ function addLineTests()
 		
 		return firstLine;
 	}
-	TestingManager.addTest("TestLine_SetByPointAndAngleNegativeAngle",TestLine_SetByPointAndAngleNegativeAngle, new Line(-1/Math.sqrt(3),1,-(4-1/(Math.sqrt(3)))), "assertObjectEquals");
-	
+	TestingManager.addTest("TestLine_SetByPointAndAngleNegativeAngle",TestLine_SetByPointAndAngleNegativeAngle, new Line(1/Math.sqrt(3),1,(4-1/(Math.sqrt(3)))), "assertObjectEquals");
+	*/
 	function TestLine_SetByPointAndAngleVerticalHalfPi()
 	{
 		var firstLine = new Line();

@@ -31,7 +31,26 @@ Line.prototype.getIntersection = function(line)
 
 	// algebraically, we normalize both lines and eliminate x, solve for y, and substitute back in for x
 	let y = ((this.a * line.c) - (line.a * this.c)) / ((line.a * this.b) - (this.a * line.b));
-	let x = -(this.c + (this.b * y))/this.a
+	let x = -(this.c + (this.b * y))/this.a;
+	
+	// if an a is 0 (and if both a are 0, that would fail the parallel test), that's even easier.
+	// just sub it in!
+	if(this.a === 0 || line.a === 0)
+	{
+		if(this.a === 0)
+		{
+			// y = -c
+			// x = -(c + b(KNOWN))/a
+			y = -this.c / this.b;
+			x = -(line.c + line.b * y)/line.a;
+			
+		}
+		if(line.a === 0)
+		{
+			y = -line.c / line.b;
+			x = -(this.c + this.b * y)/this.a;
+		}
+	}
 	
 	return new Vector(x, y);
 }
@@ -84,6 +103,12 @@ Line.prototype.equals = function(line)
 		console.warn(`Line.equals(line): line is null.`);
 		return false;
 	}
+	if(this.a === undefined || this.b === undefined || this.c === undefined 
+		|| line.a === undefined || line.b === undefined || line.c === undefined)
+	{
+		console.warn(`Line.equals(line): invalid values: ${this.toString()} ${line.toString()}.`);
+		return false;
+	}
 	// special case for when a is 0
 	if(this.sigFig15Equals(this.a, 0) || this.sigFig15Equals(line.a, 0))
 	{
@@ -115,6 +140,7 @@ Line.prototype.equals = function(line)
  */
 Line.prototype.sigFig15Equals = function(a, b)
 {	
+	if(a === undefined || b === undefined) return false;
 	let precision = 15;
 	return (a).toPrecision(precision) === (b).toPrecision(precision);
 }
@@ -146,7 +172,7 @@ Line.prototype.setByTwoPoints = function(x1, y1, x2, y2)
  */
 Line.prototype.setByPointAndAngle = function(x1, y1, theta)
 {
-	let m = -Math.tan(theta); // but we must make it a negative because js angles are... weird?
+	let m = Math.tan(theta); 
 	// Math.tan(Math.PI) is ever slightly off zero, so we must fudge it.
 	if(theta === Math.PI) m = 0;
 	let b = y1 - (m * x1);
@@ -177,3 +203,9 @@ Line.prototype.normalize = function()
 	this.c = this.c / a;
 }
  */
+ 
+Line.prototype.toString = function()
+{
+	let string = `{"a": ${this.a}, "b": ${this.b}, "c": ${this.c}}`;
+	return string;
+}
