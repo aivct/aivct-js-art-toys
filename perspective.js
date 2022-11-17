@@ -281,8 +281,8 @@ function getLineCount()
 
 function draw1PointLinearPerspective(context)
 {
-	let showMoreLines = false;
-	let mirrorVertical = false;
+	let showMoreLines = true;
+	let mirrorVertical = true;
 	
 	let lineCount = getLineCount();
 	let firstPerspectivePoint = perspectivePoints[0];
@@ -355,6 +355,9 @@ function draw1PointLinearPerspective(context)
 		guidingHorizontalLine.setByPointAndAngle(leftIntersectionPoint.x, leftIntersectionPoint.y, 0);
 		
 		let rightIntersectionPoint = guidingHorizontalLine.getIntersection(squareRightLine);
+		
+		if(rightIntersectionPoint.x >= VP45Point.x) break;
+		
 		// get nextLine
 		previousLine = new Line();
 		previousLine.setByTwoPoints(VP45Point.x, VP45Point.y, rightIntersectionPoint.x, rightIntersectionPoint.y);
@@ -363,12 +366,10 @@ function draw1PointLinearPerspective(context)
 		context.moveTo(0, leftIntersectionPoint.y);
 		context.lineTo(canvas.width, rightIntersectionPoint.y);
 		context.stroke();
-		// TODO: mirror is broken on medium, high density settings
 		if(mirrorVertical)
 		{
 			var mirrorY = leftIntersectionPoint.y - firstPerspectivePoint.position.y;
 			mirrorY = firstPerspectivePoint.position.y - mirrorY;
-			console.log(mirrorY);
 			context.beginPath();
 			context.moveTo(0, mirrorY);
 			context.lineTo(canvas.width, mirrorY);
