@@ -28,6 +28,9 @@ const PERSPECTIVE_MODES = ["1-point","2-point","3-point","curvilinear-4-point", 
 var densityMode = "low";
 const DENSITY_MODES = ["low","medium","high", "very-high"];
 
+var constructionLineMode = true;
+const CONSTRUCTION_LINE_MODES = ["true", "false"];
+
 // colours of each new point
 var lineColours = ["#f745b6","#a1fc40","#3ee8fe","#f8fe3e","#fe8e3e","#fe3efe"];
 
@@ -58,6 +61,16 @@ function initialize()
 	createModeSelector(DENSITY_MODES,(event)=>
 	{
 		if(event.target.checked) densityMode = event.target.value;
+		needsUpdating = true;
+	});
+	
+	createModeSelector(CONSTRUCTION_LINE_MODES,(event)=>
+	{
+		if(event.target.checked)
+		{
+			// we must recast a string back to boolean
+			constructionLineMode = event.target.value === "true" ? true : false;
+		}
 		needsUpdating = true;
 	});
 	
@@ -176,32 +189,97 @@ function onMode(mode)
 	perspectivePoints[2].ondrag = null;
 	perspectivePoints[3].ondrag = null;
 	perspectivePoints[4].ondrag = null;
+	
+	let snapLeftRight = (x,y) => {
+		let circlePositionOne = perspectivePoints[2].position;
+		let circlePositionTwo = perspectivePoints[3].position;
+		
+		let midpoint = circlePositionOne.getMidpointTo(circlePositionTwo);
+		let directionVector = circlePositionOne.clone();
+		directionVector.minus(circlePositionTwo);
+		
+		let displacementVector = directionVector.clone();
+		displacementVector.rotate(Math.PI/2);
+		displacementVector.scale(1/2);
+		
+		perspectivePoints[0].position.x = midpoint.x + displacementVector.x;
+		perspectivePoints[0].position.y = midpoint.y + displacementVector.y;
+		
+		displacementVector.scale(-1);
+		perspectivePoints[1].position.x = midpoint.x + displacementVector.x;
+		perspectivePoints[1].position.y = midpoint.y + displacementVector.y;
+		
+		// center the midpoint
+		perspectivePoints[4].position.x = midpoint.x;
+		perspectivePoints[4].position.y = midpoint.y;
+	}
+	
+	let snapUpDown = (x,y) => {
+		let circlePositionOne = perspectivePoints[0].position;
+		let circlePositionTwo = perspectivePoints[1].position;
+		
+		let midpoint = circlePositionOne.getMidpointTo(circlePositionTwo);
+		let directionVector = circlePositionOne.clone();
+		directionVector.minus(circlePositionTwo);
+		
+		let displacementVector = directionVector.clone();
+		displacementVector.rotate(-Math.PI/2);
+		displacementVector.scale(1/2);
+		
+		perspectivePoints[2].position.x = midpoint.x + displacementVector.x;
+		perspectivePoints[2].position.y = midpoint.y + displacementVector.y;
+		
+		displacementVector.scale(-1);
+		perspectivePoints[3].position.x = midpoint.x + displacementVector.x;
+		perspectivePoints[3].position.y = midpoint.y + displacementVector.y;
+		
+		// center the midpoint
+		perspectivePoints[4].position.x = midpoint.x;
+		perspectivePoints[4].position.y = midpoint.y;
+	}
+	
+	let snapAll = (x,y) => {
+		let circlePositionOne = perspectivePoints[2].position;
+		let circlePositionTwo = perspectivePoints[3].position;
+		
+		let midpoint = perspectivePoints[4].position;
+		let directionVector = circlePositionOne.clone();
+		directionVector.minus(circlePositionTwo);
+		
+		let displacementVector = directionVector.clone();
+		displacementVector.rotate(Math.PI/2);
+		displacementVector.scale(1/2);
+		
+		perspectivePoints[0].position.x = midpoint.x + displacementVector.x;
+		perspectivePoints[0].position.y = midpoint.y + displacementVector.y;
+		
+		displacementVector.scale(-1);
+		perspectivePoints[1].position.x = midpoint.x + displacementVector.x;
+		perspectivePoints[1].position.y = midpoint.y + displacementVector.y;
+		
+		// snap the rest 
+		snapUpDown(x,y);
+	}
+	
 	switch(mode)
 	{
-		// todo: snap for 5-point
-		case "curvilinear-4-point":
-			let snapLeftRight = (x,y) => {
-				let circlePositionOne = perspectivePoints[2].position;
-				let circlePositionTwo = perspectivePoints[3].position;
-				
-				let midpoint = circlePositionOne.getMidpointTo(circlePositionTwo);
-				let directionVector = circlePositionOne.clone();
-				directionVector.minus(circlePositionTwo);
-				
-				let displacementVector = directionVector.clone();
-				displacementVector.rotate(Math.PI/2);
-				displacementVector.scale(1/2);
-				
-				perspectivePoints[0].position.x = midpoint.x + displacementVector.x;
-				perspectivePoints[0].position.y = midpoint.y + displacementVector.y;
-				
-				displacementVector.scale(-1);
-				perspectivePoints[1].position.x = midpoint.x + displacementVector.x;
-				perspectivePoints[1].position.y = midpoint.y + displacementVector.y;
-			}
-			
+		case "curvilinear-5-point":
 			perspectivePoints[2].ondrag = snapLeftRight;
 			perspectivePoints[3].ondrag = snapLeftRight;
+			
+			perspectivePoints[0].ondrag = snapUpDown;
+			perspectivePoints[1].ondrag = snapUpDown;
+			
+			perspectivePoints[4].ondrag = snapAll;
+			// init
+			snapLeftRight();
+			break;
+		case "curvilinear-4-point":
+			perspectivePoints[2].ondrag = snapLeftRight;
+			perspectivePoints[3].ondrag = snapLeftRight;
+			
+			perspectivePoints[0].ondrag = snapUpDown;
+			perspectivePoints[1].ondrag = snapUpDown;
 			// init
 			snapLeftRight();
 			break;
@@ -286,9 +364,7 @@ function getLineCount()
  */
 
 function draw1PointLinearPerspective(context)
-{
-	let showConstructionLines = true;
-	
+{	
 	let lineCount = getLineCount();
 	let firstPerspectivePoint = perspectivePoints[0];
 	let stationPoint = perspectivePoints[1];
@@ -299,7 +375,7 @@ function draw1PointLinearPerspective(context)
 	drawPerspectiveLinesLinear(context, firstPerspectivePoint, lineCount);
 	
 	// draw guiding lines (and the construction too)
-	drawHorizontalGuidingLines(context, firstPerspectivePoint, stationPoint, showConstructionLines);
+	drawHorizontalGuidingLines(context, firstPerspectivePoint, stationPoint, constructionLineMode);
 		
 	// draw the horizon line
 	context.lineWidth = 1.0;
@@ -377,8 +453,12 @@ function draw4PointCurvilinearPerspective(context)
 	context.lineWidth = 0.25;
 	context.strokeStyle = "black";
 	
-	drawPerspectiveLinesLinear(context, firstPerspectivePoint, lineCount);
-	drawPerspectiveLinesLinear(context, secondPerspectivePoint, lineCount);
+	let directionVector = thirdPerspectivePoint.position.clone();
+	directionVector.minus(fourthPerspectivePoint.position);
+	let angle = directionVector.getAngle();
+	
+	drawPerspectiveLinesLinear(context, firstPerspectivePoint, lineCount, angle-(Math.PI/2)-Math.PI/4, Math.PI/2);
+	drawPerspectiveLinesLinear(context, secondPerspectivePoint, lineCount, angle+(Math.PI/2)-Math.PI/4, Math.PI/2);
 	drawPerspectiveLinesCurvilinear(context, thirdPerspectivePoint, fourthPerspectivePoint, lineCount);
 	
 	// draw the perspective points
@@ -427,17 +507,18 @@ function draw5PointCurvilinearPerspective(context)
 }
 
 /* helper drawing functions */
-
-function drawPerspectiveLinesLinear(context, circle, lineCount = 32)
+// @param angleRadius - radius of the arc. 2PI is 360deg.
+function drawPerspectiveLinesLinear(context, circle, lineCount = 32, startAngle = 0, angleRadius = Math.PI * 2)
 {
 	let position = circle.position;
 	let x = position.x;
 	let y = position.y;
-	
-	for(let lineNumber = 0; lineNumber < lineCount; lineNumber++)
+		
+	// add 1 final line as the endpoint
+	for(let lineNumber = 0; lineNumber <= lineCount; lineNumber++)
 	{
 		// evenly spaced angles
-		let angle = (Math.PI * 2) * (lineNumber / lineCount);
+		let angle = startAngle + ((angleRadius) * (lineNumber / (lineCount)));
 		// // find intersection of radiating line and edge
 		// quick and dirty get a vector and rotate it, but make it LOOONG. SHHHH.
 		// TODO: probably change that...
@@ -585,7 +666,6 @@ function drawHorizontalGuidingLines(context, centerVanishingPoint, stationPoint,
 	for(let lineIndex = 0; lineIndex < lineCount; lineIndex++)
 	{
 		let leftIntersectionPoint = previousLine.getIntersection(squareLeftLine);
-		console.log(leftIntersectionPoint.y);
 		/* 
 			this will form part of our square. 
 			from one diagonal to the next, 
