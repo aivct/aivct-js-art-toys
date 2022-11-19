@@ -18,6 +18,7 @@ const DENSITY_VERY_HIGH_LINECOUNT = 256;
 const FONT_SIZE = 18;
 const FONT = "Times New Roman";
 
+var mainContainer;
 var canvas;
 var context;
 var needsUpdating = true;
@@ -28,43 +29,85 @@ const PERSPECTIVE_MODES = ["1-point","2-point","3-point","curvilinear-4-point", 
 var densityMode = "low";
 const DENSITY_MODES = ["low","medium","high", "very-high"];
 
+var snapMode = true;
+const SNAP_MODES = ["true", "false"];
+
 var constructionLineMode = true;
 const CONSTRUCTION_LINE_MODES = ["true", "false"];
+
+var isNotesHidden = false;
+var isModesContainerHidden = false;
 
 // colours of each new point
 var lineColours = ["#f745b6","#a1fc40","#3ee8fe","#f8fe3e","#fe8e3e","#fe3efe"];
 
 function initialize()
 {
+	mainContainer = document.createElement("div");
+	mainContainer.classList.add("container");
+	document.body.appendChild(mainContainer);
+	
 	canvas = document.createElement("canvas");
-	canvas.width = 800 * 3;
-	canvas.height = 600 * 3;
-	document.body.appendChild(canvas);
+	canvas.classList.add("fixed");
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+	mainContainer.appendChild(canvas);
 	
 	canvas.addEventListener("mousedown",onmousedown, false);
 	canvas.addEventListener("mouseup",onmouseup, false);
 	canvas.addEventListener("mousemove",onmousemove, false);
+	window.addEventListener("resize",onresize, false);
 	
 	context = canvas.getContext("2d");
 	// setup context
 	context.font = `${FONT_SIZE}px ${FONT}`;
 	
 	// create more UI 
-	createModeSelector(PERSPECTIVE_MODES,(event)=>
+	let createText = function(text)
+	{
+		let p = document.createElement("p");
+		p.innerHTML = text;
+		return p;
+	}
+	var selectorContainer = document.createElement("div");
+	selectorContainer.classList.add("fixed");
+	selectorContainer.classList.add("popup-box");
+	selectorContainer.classList.add("compact");
+	mainContainer.appendChild(selectorContainer);
+	
+	selectorContainer.appendChild(createText("Perspective"));
+	var selector = createModeSelector(PERSPECTIVE_MODES,(event)=>
 	{
 		if(event.target.checked) perspectiveMode = event.target.value;
 		onMode(event.target.value);
 		
 		needsUpdating = true;
 	});
+	selectorContainer.appendChild(selector);
 	
-	createModeSelector(DENSITY_MODES,(event)=>
+	selectorContainer.appendChild(createText("Line Density"));
+	var selector = createModeSelector(DENSITY_MODES,(event)=>
 	{
 		if(event.target.checked) densityMode = event.target.value;
 		needsUpdating = true;
 	});
+	selectorContainer.appendChild(selector);
 	
-	createModeSelector(CONSTRUCTION_LINE_MODES,(event)=>
+	selectorContainer.appendChild(createText("Snap Mode"));
+	var selector = createModeSelector(CONSTRUCTION_LINE_MODES,(event)=>
+	{
+		if(event.target.checked)
+		{
+			// we must recast a string back to boolean
+			snapMode = event.target.value === "true" ? true : false;
+			onMode(perspectiveMode);
+		}
+		needsUpdating = true;
+	});
+	selectorContainer.appendChild(selector);
+	
+	selectorContainer.appendChild(createText("Show Construction Lines"));
+	var selector = createModeSelector(CONSTRUCTION_LINE_MODES,(event)=>
 	{
 		if(event.target.checked)
 		{
@@ -73,6 +116,97 @@ function initialize()
 		}
 		needsUpdating = true;
 	});
+	selectorContainer.appendChild(selector);
+	
+	let hideAll = () => {
+		if(!isModesContainerHidden) toggleModesContainer();
+		if(!isNotesHidden) toggleNotes();
+	}
+	
+	let showAll = () => {
+		if(isModesContainerHidden) toggleModesContainer();
+		if(isNotesHidden) toggleNotes();
+	}
+	
+	let isUIHidden = () => {
+		if(!isModesContainerHidden) return false;
+		if(!isNotesHidden) return false;
+		return true;
+	}
+	
+	let toggleUI = () => {
+		if(isUIHidden())
+		{
+			showAll();
+		}
+		else 
+		{
+			hideAll();
+		}
+	}
+	
+	let toggleModesContainer = () => {
+		if(isModesContainerHidden)
+		{
+			selectorContainer.classList.remove("closed");
+			isModesContainerHidden = false;
+		}
+		else 
+		{
+			selectorContainer.classList.add("closed");
+			isModesContainerHidden = true;
+		}
+	}
+	
+	let toggleNotes = () => {
+		if(isNotesHidden)
+		{
+			notesContainer.classList.remove("closed");
+			isNotesHidden = false;
+		}
+		else 
+		{
+			notesContainer.classList.add("closed");
+			isNotesHidden = true;
+		}
+	}
+	
+	var buttonsContainer = document.createElement("div");
+	buttonsContainer.classList.add("fixed-bottom");
+	buttonsContainer.classList.add("vertical-button-container");
+	mainContainer.appendChild(buttonsContainer);
+	
+	var hideUIButton = document.createElement("button");
+	hideUIButton.innerHTML = "UI";
+	hideUIButton.classList.add("square-button");
+	hideUIButton.onclick = toggleUI;
+	buttonsContainer.appendChild(hideUIButton);
+			
+	var toggleNotesButton = document.createElement("button");
+	toggleNotesButton.innerHTML = "?";
+	toggleNotesButton.classList.add("square-button");
+	toggleNotesButton.classList.add("front");
+	toggleNotesButton.onclick = toggleNotes;
+	buttonsContainer.appendChild(toggleNotesButton);
+	
+	var notesContainer = document.createElement("div");
+	notesContainer.innerHTML = `
+<h1>Notes</h1>
+<p>Note that in order to allow you to manipulate the vanishing points, the canvas is larger than it needs to be. When actually making a grid, I'd advise you to crop somewhere around the center for the best results.</p>
+
+<p>Notes on FOV degrees: What does a 45° field of view mean? In a literal sense, imagine an observer. Now project a cone from their eyes. Anything that cone touches is what the observer can see. Degrees of FOV determines how big that cone is. At 180° FOV, that cone is a hemisphere. At 360° FOV, the observer sees everything. But what does that mean on paper? From the standing point to the horizon line, a 60° FOV is also, conveniently, a 30° triangle, and at one of those points, we mark it as the 30 ° viewpoint.</p>
+
+<p>Notes on perspective. 1-point perspective is easily prone to distortion. As an approximation, we assume the camera is really far away, and limit ourselves to less than ~50° of FOV for the least amount of distortion. For 2 or 3 point perspective, 60° of FOV is acceptable. In 4 point perspective, we are a cylinder. In 5 point perspective, we can achieve 180° FOV without distortion (that's half of a sphere, basically), and in 6 point perspective, we grow eyes on the back of our head and see 360° without distortion.</p>
+
+<p>Notes on 1-point perspective: The red circle is the 60° FOV, which you are recommended to stay within when drawing. The green station point is the observer. Normally, we cannot see behind them unless we grow eyes on the back of our head!</p>
+<p>By <a href="https://aivct.github.io">aivct</a>. Suggestions are welcome on <a href="https://github.com/aivct/aivct-js-art-toys/">github</a>.</p>`;
+	notesContainer.classList.add("popup-box");
+	notesContainer.classList.add("margin-left-50");
+	notesContainer.classList.add("fixed-bottom");
+	mainContainer.appendChild(notesContainer);
+	
+	// close notes at start 
+	toggleNotes();
 	
 	// setup init 
 	perspectivePoints.push(new PerspectivePoint(15,canvas.height/2));
@@ -132,7 +266,8 @@ function createModeSelector(options, onclick)
 		
 		"modeSelector_" + optionString
 	}
-	document.body.appendChild(modeSelector);
+	
+	return modeSelector;
 }
 
 function onmousedown(event)
@@ -178,6 +313,13 @@ function onmouseup(event)
 		let perspectivePoint = perspectivePoints[index];
 		perspectivePoint.onmouseup(mouseX, mouseY);
 	}
+	needsUpdating = true;
+}
+
+function onresize(event)
+{
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
 	needsUpdating = true;
 }
 
@@ -264,46 +406,64 @@ function onMode(mode)
 	switch(mode)
 	{
 		case "curvilinear-5-point":
-			perspectivePoints[2].ondrag = snapLeftRight;
-			perspectivePoints[3].ondrag = snapLeftRight;
-			
-			perspectivePoints[0].ondrag = snapUpDown;
-			perspectivePoints[1].ondrag = snapUpDown;
-			
-			perspectivePoints[4].ondrag = snapAll;
-			// init
-			snapLeftRight();
+			if(snapMode)
+			{
+				perspectivePoints[2].ondrag = snapLeftRight;
+				perspectivePoints[3].ondrag = snapLeftRight;
+				
+				perspectivePoints[0].ondrag = snapUpDown;
+				perspectivePoints[1].ondrag = snapUpDown;
+				
+				perspectivePoints[4].ondrag = snapAll;
+				// init
+				snapLeftRight();
+			}
 			break;
 		case "curvilinear-4-point":
-			perspectivePoints[2].ondrag = snapLeftRight;
-			perspectivePoints[3].ondrag = snapLeftRight;
-			
-			perspectivePoints[0].ondrag = snapUpDown;
-			perspectivePoints[1].ondrag = snapUpDown;
-			// init
-			snapLeftRight();
+			if(snapMode)
+			{
+				perspectivePoints[2].ondrag = snapLeftRight;
+				perspectivePoints[3].ondrag = snapLeftRight;
+				
+				perspectivePoints[0].ondrag = snapUpDown;
+				perspectivePoints[1].ondrag = snapUpDown;
+				// init
+				snapLeftRight();
+			}
 			break;
 		case "3-point":
+			if(snapMode)
+			{
+			}
 			break;
 		case "2-point":
+			
 			let snap2PointY = (x,y) => {
 				perspectivePoints[0].position.y = y;
 				perspectivePoints[1].position.y = y;
 			}
 			// for a 'SNAP' effect
-			perspectivePoints[0].ondrag = snap2PointY;
-			perspectivePoints[1].ondrag = snap2PointY;
+			if(snapMode)
+			{
+				perspectivePoints[0].ondrag = snap2PointY;
+				perspectivePoints[1].ondrag = snap2PointY;
+			}
 			break;
 		case "1-point":
 			let snap2PointX = (x,y) => {
 				perspectivePoints[0].position.x = x;
 				perspectivePoints[1].position.x = x;
 			}
-			perspectivePoints[0].ondrag = snap2PointX;
-			perspectivePoints[1].ondrag = snap2PointX;
-			// init 
-			perspectivePoints[1].position.x = perspectivePoints[0].position.x;
-			perspectivePoints[1].position.y = perspectivePoints[0].position.y + 400;
+			if(snapMode)
+			{
+				perspectivePoints[0].ondrag = snap2PointX;
+				perspectivePoints[1].ondrag = snap2PointX;
+				// init 
+				perspectivePoints[0].position.x = canvas.width/2;
+				perspectivePoints[0].position.y = canvas.height/2;
+				perspectivePoints[1].position.x = perspectivePoints[0].position.x;
+				perspectivePoints[1].position.y = perspectivePoints[0].position.y + 400;
+			}
 			break;
 	}
 }

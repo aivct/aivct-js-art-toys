@@ -1,15 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
 <script src="utilities/object_utilities.js"></script>
 <script src="utilities/vector.js"></script>
 <script src="utilities/line.js"></script>
 <script src="utilities/draggable.js"></script>
 
 <script src="perspective.js"></script>
-
-<p>Note that in order to allow you to manipulate the vanishing points, the canvas is larger than it needs to be. When actually making a grid, I'd advise you to crop somewhere around the center for the best results.</p>
-
-<p>Notes on FOV degrees: What does 45° field of view mean? In a literal sense, imagine an observer. Now project a cone from their eyes. Anything that cone touches is what the observer can see. Degrees of FOV determines how big that cone is. At 180° FOV, that cone is a hemisphere. At 360° FOV, the observer sees everything. But what does that mean on paper. From the standing point to the horizon line, a 60° FOV is also, conveniently, a 30° triangle, and at one of those points, we mark it as the 30 °ree viewpoint.</p>
-
-<p>Notes on perspective. 1-point perspective is easily prone to distortion. As an approximation, we assume the camera is really far away, and limit ourselves to less than ~50° of FOV for the least amount of distortion. For 2 or 3 point perspective, 60° of FOV is acceptable. In 4 point perspective, we are a cylinder. In 5 point perspective, we can achieve 180° FOV without distortion (that's half of a sphere, basically), and in 6 point perspective, we grow eyes on the back of our head and see 360° without distortion.</p>
-<p>1-point perspective: The red circle is the 60° FOV, which you are recommended to stay within when drawing. The station point is the observer. Normally, we cannot see behind them unless we grow eyes on the back of our head!</p>
-<p>2-point perspective has a 90° FOV.</p>
-<p>4 point continous looks like this: S-E-N-W-S. By the same measure, it is possible to have 4, 5, 6, 7 vanishing points, although we quickly leave the realm of reality by then.</p>
+<link rel="stylesheet" href="perspective.css">
+</head>
+<body>
+</body>
+</html>
