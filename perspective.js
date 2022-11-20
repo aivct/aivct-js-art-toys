@@ -1,3 +1,4 @@
+// TODO: fix for mobile
 // TODO: add options to build one's own scene.
 // https://www.sketchlikeanarchitect.com/blog/what-type-of-perspective-should-you-choose
 
@@ -53,9 +54,9 @@ function initialize()
 	canvas.height = window.innerHeight;
 	mainContainer.appendChild(canvas);
 	
-	canvas.addEventListener("mousedown",onmousedown, false);
-	canvas.addEventListener("mouseup",onmouseup, false);
-	canvas.addEventListener("mousemove",onmousemove, false);
+	canvas.addEventListener("pointerdown",onpointerdown, false);
+	canvas.addEventListener("pointerup",onpointerup, false);
+	canvas.addEventListener("pointermove",onpointermove, false);
 	window.addEventListener("resize",onresize, false);
 	
 	context = canvas.getContext("2d");
@@ -270,48 +271,48 @@ function createModeSelector(options, onclick)
 	return modeSelector;
 }
 
-function onmousedown(event)
+function onpointerdown(event)
 {
 	canvasBoundingRectangle = canvas.getBoundingClientRect();
 	
-	var mouseX = event.clientX - canvasBoundingRectangle.x;
-	var mouseY = event.clientY - canvasBoundingRectangle.y;
+	var pointerX = event.clientX - canvasBoundingRectangle.x;
+	var pointerY = event.clientY - canvasBoundingRectangle.y;
 	
 	for(let index = 0; index < perspectivePoints.length; index++)
 	{
 		let perspectivePoint = perspectivePoints[index];
-		// mouse down should ONLY be called once per click to prevent bleeding.
-		if(perspectivePoint.onmousedown(mouseX, mouseY)) return;
+		// pointer down should ONLY be called once per click to prevent bleeding.
+		if(perspectivePoint.onpointerdown(pointerX, pointerY)) return;
 	}
 	needsUpdating = true;
 }
 
-function onmousemove(event)
+function onpointermove(event)
 {
 	canvasBoundingRectangle = canvas.getBoundingClientRect();
 	
-	var mouseX = event.clientX - canvasBoundingRectangle.x;
-	var mouseY = event.clientY - canvasBoundingRectangle.y;
+	var pointerX = event.clientX - canvasBoundingRectangle.x;
+	var pointerY = event.clientY - canvasBoundingRectangle.y;
 	
 	for(let index = 0; index < perspectivePoints.length; index++)
 	{
 		let perspectivePoint = perspectivePoints[index];
-		perspectivePoint.onmousemove(mouseX, mouseY);
+		perspectivePoint.onpointermove(pointerX, pointerY);
 	}
 	needsUpdating = true;
 }
 
-function onmouseup(event)
+function onpointerup(event)
 {
 	canvasBoundingRectangle = canvas.getBoundingClientRect();
 	
-	var mouseX = event.clientX - canvasBoundingRectangle.x;
-	var mouseY = event.clientY - canvasBoundingRectangle.y;
+	var pointerX = event.clientX - canvasBoundingRectangle.x;
+	var pointerY = event.clientY - canvasBoundingRectangle.y;
 	
 	for(let index = 0; index < perspectivePoints.length; index++)
 	{
 		let perspectivePoint = perspectivePoints[index];
-		perspectivePoint.onmouseup(mouseX, mouseY);
+		perspectivePoint.onpointerup(pointerX, pointerY);
 	}
 	needsUpdating = true;
 }

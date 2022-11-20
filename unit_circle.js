@@ -25,9 +25,9 @@ function initialize()
 	canvas.height = 600;
 	document.body.appendChild(canvas);
 	
-	canvas.addEventListener("mousedown",onmousedown, false);
-	canvas.addEventListener("mouseup",onmouseup, false);
-	canvas.addEventListener("mousemove",onmousemove, false);
+	canvas.addEventListener("pointerdown",onpointerdown, false);
+	canvas.addEventListener("pointerup",onpointerup, false);
+	canvas.addEventListener("pointermove",onpointermove, false);
 	
 	context = canvas.getContext("2d");
 	// make more UI
@@ -233,48 +233,48 @@ function createModeSelector(options, onclick)
 	document.body.appendChild(modeSelector);
 }
 
-function onmousedown(event)
+function onpointerdown(event)
 {
 	canvasBoundingRectangle = canvas.getBoundingClientRect();
 	
-	var mouseX = event.clientX - canvasBoundingRectangle.x;
-	var mouseY = event.clientY - canvasBoundingRectangle.y;
+	var pointerX = event.clientX - canvasBoundingRectangle.x;
+	var pointerY = event.clientY - canvasBoundingRectangle.y;
 	
 	for(let index = 0; index < draggables.length; index++)
 	{
 		let draggable = draggables[index];
-		// mouse down should ONLY be called once per click to prevent bleeding.
-		if(draggable.onmousedown(mouseX, mouseY)) return;
+		// pointer down should ONLY be called once per click to prevent bleeding.
+		if(draggable.onpointerdown(pointerX, pointerY)) return;
 	}
 	needsUpdating = true;
 }
 
-function onmousemove(event)
+function onpointermove(event)
 {
 	canvasBoundingRectangle = canvas.getBoundingClientRect();
 	
-	var mouseX = event.clientX - canvasBoundingRectangle.x;
-	var mouseY = event.clientY - canvasBoundingRectangle.y;
+	var pointerX = event.clientX - canvasBoundingRectangle.x;
+	var pointerY = event.clientY - canvasBoundingRectangle.y;
 	
 	for(let index = 0; index < draggables.length; index++)
 	{
 		let draggable = draggables[index];
-		draggable.onmousemove(mouseX, mouseY);
+		draggable.onpointermove(pointerX, pointerY);
 	}
 	needsUpdating = true;
 }
 
-function onmouseup(event)
+function onpointerup(event)
 {
 	canvasBoundingRectangle = canvas.getBoundingClientRect();
 	
-	var mouseX = event.clientX - canvasBoundingRectangle.x;
-	var mouseY = event.clientY - canvasBoundingRectangle.y;
+	var pointerX = event.clientX - canvasBoundingRectangle.x;
+	var pointerY = event.clientY - canvasBoundingRectangle.y;
 	
 	for(let index = 0; index < draggables.length; index++)
 	{
 		let draggable = draggables[index];
-		draggable.onmouseup(mouseX, mouseY);
+		draggable.onpointerup(pointerX, pointerY);
 	}
 	needsUpdating = true;
 }
