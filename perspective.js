@@ -193,6 +193,7 @@ function initialize()
 	var notesContainer = document.createElement("div");
 	notesContainer.innerHTML = `
 <h1>Notes</h1>
+<p>Click and drag the coloured points to modify the grid.</p>
 <p>Note that in order to allow you to manipulate the vanishing points, the canvas is larger than it needs to be. When actually making a grid, I'd advise you to crop somewhere around the center for the best results.</p>
 
 <p>Notes on FOV degrees: What does a 45° field of view mean? In a literal sense, imagine an observer. Now project a cone from their eyes. Anything that cone touches is what the observer can see. Degrees of FOV determines how big that cone is. At 180° FOV, that cone is a hemisphere. At 360° FOV, the observer sees everything. But what does that mean on paper? From the standing point to the horizon line, a 60° FOV is also, conveniently, a 30° triangle, and at one of those points, we mark it as the 30 ° viewpoint.</p>
@@ -230,6 +231,8 @@ function draw()
 		context.clearRect(0,0,canvas.width,canvas.height);
 		
 		drawPerspective(context);
+		
+		drawTestCube(context);
 		
 		needsUpdating = false;
 	}
@@ -923,11 +926,167 @@ function drawHorizontalGuidingLines(context, centerVanishingPoint, stationPoint,
 	}
 }
 
+// not a generalized draw function, we're just makin' a cube.
+function drawTestCube(context)
+{
+	let cubeWidth = 250;
+	let cubeHeight = 100;
+	let cubeDepth = 150;
+	
+	if(perspectiveMode === "1-point")
+	{
+		let CVP = perspectivePoints[0].position;
+		
+		let startX = canvas.width - 100 - cubeWidth;
+		let startY = 100;
+		
+		let TLLine = new Line();
+		TLLine.setByTwoPoints(startX, startY, CVP.x, CVP.y);
+		
+		let TRLine = new Line();
+		TRLine.setByTwoPoints(startX + cubeWidth, startY, CVP.x, CVP.y);
+
+		let BRLine = new Line();
+		BRLine.setByTwoPoints(startX + cubeWidth, startY + cubeHeight, CVP.x, CVP.y);
+
+		let BLLine = new Line();
+		BLLine.setByTwoPoints(startX, startY + cubeHeight, CVP.x, CVP.y);
+		
+		let directionVector = new Vector(startX, startY);
+		directionVector.minus(CVP);
+		directionVector.normalize();
+		directionVector.scale(cubeDepth);
+		directionVector.scale(-1);
+		
+		let BackLeftVertical = new Line();
+		BackLeftVertical.setByPointAndAngle(startX + directionVector.x, 0, Math.PI/2);
+		
+		let TLIntersection = TLLine.getIntersection(BackLeftVertical);
+		let BLIntersection = BLLine.getIntersection(BackLeftVertical);
+		
+		let BackTopHorizontal = new Line();
+		BackTopHorizontal.setByPointAndAngle(TLIntersection.x, TLIntersection.y, 0);
+		let BackBottomHorizontal = new Line();
+		BackBottomHorizontal.setByPointAndAngle(BLIntersection.x, BLIntersection.y, 0);
+		
+		let TRIntersection = TRLine.getIntersection(BackTopHorizontal);
+		let BRIntersection = BRLine.getIntersection(BackBottomHorizontal);
+		
+		// draw 
+		let FTL = new Vector(startX, startY);
+		let FTR = new Vector(startX + cubeWidth, startY);
+		let FBL = new Vector(startX, startY + cubeHeight);
+		let FBR = new Vector(startX + cubeWidth, startY + cubeHeight);
+		
+		let BTL = TLIntersection;
+		let BTR = TRIntersection;
+		let BBL = BLIntersection;
+		let BBR = BRIntersection;
+			
+		drawCube(FTL, FTR, FBL, FBR, BTL, BTR, BBL, BBR);
+		
+		// left face
+		
+		if(constructionLineMode)
+		{
+			context.strokeStyle = "blue";
+			context.lineWidth = 0.5;
+			drawLineByTwoPoints(context, startX, startY, CVP.x, CVP.y);
+			drawLineByTwoPoints(context, startX + cubeWidth, startY, CVP.x, CVP.y);
+			drawLineByTwoPoints(context, startX + cubeWidth, startY + cubeHeight, CVP.x, CVP.y);
+			drawLineByTwoPoints(context, startX, startY + cubeHeight, CVP.x, CVP.y);
+		}
+	}
+}
+
+function drawCube(FTL, FTR, FBL, FBR, BTL, BTR, BBL, BBR)
+{
+	// sometimes we lack a point, no big deal.
+	if(!FTL || !FTR || !FBL || !FBR || !BTL || !BTR || !BBL || !BBR) return;
+	
+	context.strokeStyle = "red";
+	context.lineWidth = 0.5;
+	// back face
+	context.fillStyle = "#027810";
+	context.beginPath();
+	context.moveTo(BTL.x, BTL.y);
+	context.lineTo(BTR.x, BTR.y);
+	context.lineTo(BBR.x, BBR.y);
+	context.lineTo(BBL.x, BBL.y);
+	context.closePath();
+	context.fill();
+	context.stroke();
+	
+	// right face
+	context.fillStyle = "#027810";
+	context.beginPath();
+	context.moveTo(BTR.x, BTR.y);
+	context.lineTo(FTR.x, FTR.y);
+	context.lineTo(FBR.x, FBR.y);
+	context.lineTo(BBR.x, BBR.y);
+	context.closePath();
+	context.fill();
+	context.stroke();
+	
+	// top face
+	context.fillStyle = "#013707";
+	context.beginPath();
+	context.moveTo(BTR.x, BTR.y);
+	context.lineTo(FTR.x, FTR.y);
+	context.lineTo(FTL.x, FTL.y);
+	context.lineTo(BTL.x, BTL.y);
+	context.closePath();
+	context.fill();
+	context.stroke();
+	
+	// bottom face
+	context.fillStyle = "#05f020";
+	context.beginPath();
+	context.moveTo(BBL.x, BBL.y);
+	context.lineTo(BBR.x, BBR.y);
+	context.lineTo(FBR.x, FBR.y);
+	context.lineTo(FBL.x, FBL.y);
+	context.closePath();
+	context.fill();
+	context.stroke();
+	
+	// left face
+	context.fillStyle = "#05e61f";
+	context.beginPath();
+	context.moveTo(BTL.x, BTL.y);
+	context.lineTo(FTL.x, FTL.y);
+	context.lineTo(FBL.x, FBL.y);
+	context.lineTo(BBL.x, BBL.y);
+	context.closePath();
+	context.fill();
+	context.stroke();
+	
+	// front face
+	context.fillStyle = "#aafdb4";
+	context.beginPath();
+	context.moveTo(FTL.x, FTL.y);
+	context.lineTo(FTR.x, FTR.y);
+	context.lineTo(FBR.x, FBR.y);
+	context.lineTo(FBL.x, FBR.y);
+	context.closePath();
+	context.fill();
+	context.stroke();
+	
+}
+
 // this is NOT a general draw font function. fontSize is baked in. We are using this mostly to be lazy.
 function drawCenteredText(context, text, x, y)
 {
 	var textMetric = context.measureText(text);
 	context.fillText(text, x - textMetric.width/2, y + FONT_SIZE/2);
+}
+
+function drawLineByTwoPoints(context, x1, y1, x2, y2)
+{
+	context.beginPath();
+	context.moveTo(x1, y1);
+	context.lineTo(x2, y2);
+	context.stroke();
 }
 
 // classes
